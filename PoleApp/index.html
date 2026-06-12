@@ -11,7 +11,7 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: white;
+      background: #f5f0e8;
       color: #2c2c2c;
       overflow: hidden;
     }
@@ -24,7 +24,8 @@
     .header {
       flex-shrink: 0;
       padding: 20px 24px 16px;
-      border-bottom: 1px solid #e0e0e0;
+      background: #e8e0d4;
+      border-bottom: 1px solid #d5cdc0;
       position: relative;
     }
     .title {
@@ -55,10 +56,11 @@
     input[type="text"] {
       width: 80px;
       padding: 6px 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #d5cdc0;
       border-radius: 6px;
       font-size: 14px;
       text-align: center;
+      background: #fdfcf9;
     }
     input[type="range"] {
       width: 140px;
@@ -67,10 +69,10 @@
     }
     select {
       padding: 6px 8px;
-      border: 1px solid #ccc;
+      border: 1px solid #d5cdc0;
       border-radius: 6px;
       font-size: 14px;
-      background: white;
+      background: #fdfcf9;
       cursor: pointer;
     }
     .hint {
@@ -86,7 +88,7 @@
       justify-content: center;
       align-items: center;
       padding: 8px;
-      background: white;
+      background: #f5f0e8;
       overflow: auto;
       gap: 16px;
     }
@@ -119,18 +121,19 @@
       position: absolute;
       top: 20px;
       right: 24px;
-      font-size: 13px;
-      color: #777;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
       text-decoration: none;
       padding: 6px 12px;
-      border: 1px solid #ddd;
+      border: 1px solid #b0a89e;
       border-radius: 6px;
-      background: #fafafa;
+      background: #fdfcf9;
       transition: background 0.2s;
     }
     .back-btn:hover {
-      background: #eee;
-      color: #444;
+      background: #d5cdc0;
+      color: #000;
     }
   </style>
 </head>
@@ -243,7 +246,6 @@ function draw() {
 
   // 3. Filled area
   if (shape === 'rectangle') {
-    // Filled unit squares for the rectangle
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
         const vw = Math.max(0, Math.min(1, width - x));
@@ -253,7 +255,6 @@ function draw() {
       }
     }
   } else if (shape === 'triangle') {
-    // Right‑angled triangle with right angle at (ox, oy)
     const p1 = `${ox},${oy}`;
     const p2 = `${ox + width * UNIT},${oy}`;
     const p3 = `${ox},${oy + height * UNIT}`;
@@ -263,7 +264,6 @@ function draw() {
   svg.innerHTML = s;
 }
 
-// ---- Zoom via mouse wheel ----
 svgContainer.addEventListener('wheel', (e) => {
   e.preventDefault();
   const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
@@ -271,14 +271,12 @@ svgContainer.addEventListener('wheel', (e) => {
   draw();
 }, { passive: false });
 
-// ---- Input handlers ----
 w.oninput = () => draw();
 h.oninput = () => draw();
 ws.oninput = () => { w.value = ws.value; draw(); };
 hs.oninput = () => { h.value = hs.value; draw(); };
 shapeSelect.onchange = () => draw();
 
-// initial draw
 draw();
 </script>
 </body>
