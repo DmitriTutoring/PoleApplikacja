@@ -209,27 +209,23 @@ const boxMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.3,
   metalness: 0.1,
   transparent: true,
-  opacity: 0.8,             // ← less transparent
+  opacity: 0.8,
   side: THREE.DoubleSide
 });
 const unitBoxGeometry = new THREE.BoxGeometry(1, 1, 1);
 const boxMesh = new THREE.Mesh(unitBoxGeometry, boxMaterial);
 scene.add(boxMesh);
 
-// --- Black outline (edges of the prism) ---
-const edgeGeometry = new THREE.EdgesGeometry(unitBoxGeometry);
-const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-const edgeLines = new THREE.LineSegments(edgeGeometry, edgeMaterial);
-boxMesh.add(edgeLines);
-
-// --- Surface grid group (thick lines) ---
+// --- Surface grid group (thick lines) + Edge group ---
 const surfaceGridGroup = new THREE.Group();
+const edgeGroup = new THREE.Group();
 scene.add(surfaceGridGroup);
+scene.add(edgeGroup);
 
 // --- Helpers ---
-const LINE_THICKNESS = 0.02;   // thickness of the thick grid "lines" (bars)
+const LINE_THICKNESS = 0.022;
+const CORNER_SIZE = LINE_THICKNESS;
 
-// Create a thin box representing a thick line from p1 to p2
 function createThickLine(x1, y1, z1, x2, y2, z2, color = '#000') {
   const dx = x2 - x1;
   const dy = y2 - y1;
@@ -240,11 +236,11 @@ function createThickLine(x1, y1, z1, x2, y2, z2, color = '#000') {
   const midZ = (z1 + z2) / 2;
 
   let geometry;
-  if (Math.abs(dy) > 0.001) { // vertical
+  if (Math.abs(dy) > 0.001) {
     geometry = new THREE.BoxGeometry(LINE_THICKNESS, length, LINE_THICKNESS);
-  } else if (Math.abs(dx) > 0.001) { // horizontal along X
+  } else if (Math.abs(dx) > 0.001) {
     geometry = new THREE.BoxGeometry(length, LINE_THICKNESS, LINE_THICKNESS);
-  } else { // horizontal along Z
+  } else {
     geometry = new THREE.BoxGeometry(LINE_THICKNESS, LINE_THICKNESS, length);
   }
 
@@ -252,6 +248,14 @@ function createThickLine(x1, y1, z1, x2, y2, z2, color = '#000') {
   const box = new THREE.Mesh(geometry, material);
   box.position.set(midX, midY, midZ);
   return box;
+}
+
+function createCornerCube(x, y, z) {
+  const geometry = new THREE.BoxGeometry(CORNER_SIZE, CORNER_SIZE, CORNER_SIZE);
+  const material = new THREE.MeshBasicMaterial({ color: '#000' });
+  const cube = new THREE.Mesh(geometry, material);
+  cube.position.set(x, y, z);
+  return cube;
 }
 
 const HOVER_OFFSET = 0.24;
@@ -263,26 +267,26 @@ let lastD = 1;
 
 // --- Update functions ---
 function updateSurfaceGrid(w, h, d) {
-  // Remove old grid
   while(surfaceGridGroup.children.length > 0) {
     surfaceGridGroup.remove(surfaceGridGroup.children[0]);
   }
+  while(edgeGroup.children.length > 0) {
+    edgeGroup.remove(edgeGroup.children[0]);
+  }
 
-  // If any dimension is 0, nothing to draw
   if (w <= 0 || h <= 0 || d <= 0) return;
 
   const halfW = w / 2;
   const halfD = d / 2;
-
-  // Always unit step (1)
   const step = 1;
+  const topY = HOVER_OFFSET + h;
+  const bottomY = HOVER_OFFSET;
 
   function generatePositions(total, halfOffset) {
     const positions = [];
     for (let i = 0; i <= Math.floor(total); i += step) {
       positions.push(i - halfOffset);
     }
-    // Ensure the positive boundary (could be fractional)
     if (!positions.includes(halfOffset)) positions.push(halfOffset);
     if (!positions.includes(-halfOffset)) positions.push(-halfOffset);
     return positions;
@@ -292,41 +296,57 @@ function updateSurfaceGrid(w, h, d) {
   const zPositions = generatePositions(d, halfD);
   const yPositions = [];
   for (let i = 0; i <= Math.floor(h); i += step) {
-    yPositions.push(HOVER_OFFSET + i);
+    yPositions.push(bottomY + i);
   }
-  const topY = HOVER_OFFSET + h;
-  const bottomY = HOVER_OFFSET;
   if (!yPositions.includes(topY)) yPositions.push(topY);
   if (!yPositions.includes(bottomY)) yPositions.push(bottomY);
 
-  // Helper to add a thick line
   function addLine(x1, y1, z1, x2, y2, z2) {
     surfaceGridGroup.add(createThickLine(x1, y1, z1, x2, y2, z2));
   }
 
-  // Front face (z = +halfD)
+  // Faces
+  // Front
   for (const x of xPositions) addLine(x, bottomY, halfD, x, topY, halfD);
   for (const y of yPositions) addLine(-halfW, y, halfD, halfW, y, halfD);
-
-  // Back face (z = -halfD)
+  // Back
   for (const x of xPositions) addLine(x, bottomY, -halfD, x, topY, -halfD);
   for (const y of yPositions) addLine(-halfW, y, -halfD, halfW, y, -halfD);
-
-  // Right face (x = +halfW)
+  // Right
   for (const z of zPositions) addLine(halfW, bottomY, z, halfW, topY, z);
   for (const y of yPositions) addLine(halfW, y, -halfD, halfW, y, halfD);
-
-  // Left face (x = -halfW)
+  // Left
   for (const z of zPositions) addLine(-halfW, bottomY, z, -halfW, topY, z);
   for (const y of yPositions) addLine(-halfW, y, -halfD, -halfW, y, halfD);
-
-  // Top face (y = topY)
+  // Top
   for (const x of xPositions) addLine(x, topY, -halfD, x, topY, halfD);
   for (const z of zPositions) addLine(-halfW, topY, z, halfW, topY, z);
-
-  // Bottom face (y = bottomY)
+  // Bottom
   for (const x of xPositions) addLine(x, bottomY, -halfD, x, bottomY, halfD);
   for (const z of zPositions) addLine(-halfW, bottomY, z, halfW, bottomY, z);
+
+  // Edges (12 thick bars along the prism outline)
+  const corners = [
+    [-halfW, bottomY, -halfD], [ halfW, bottomY, -halfD],
+    [ halfW, bottomY,  halfD], [-halfW, bottomY,  halfD],
+    [-halfW, topY,    -halfD], [ halfW, topY,    -halfD],
+    [ halfW, topY,     halfD], [-halfW, topY,     halfD]
+  ];
+  const edges = [
+    [0,1], [1,2], [2,3], [3,0], // bottom
+    [4,5], [5,6], [6,7], [7,4], // top
+    [0,4], [1,5], [2,6], [3,7]  // verticals
+  ];
+
+  for (const [i, j] of edges) {
+    const p = corners[i], q = corners[j];
+    edgeGroup.add(createThickLine(p[0], p[1], p[2], q[0], q[1], q[2]));
+  }
+
+  // Corner cubes to cap the edges cleanly
+  for (const [cx, cy, cz] of corners) {
+    edgeGroup.add(createCornerCube(cx, cy, cz));
+  }
 }
 
 function updateGroundGrid(maxDim) {
@@ -338,7 +358,6 @@ function updateGroundGrid(maxDim) {
 }
 
 function updatePrism() {
-  // Position the box: centered on XZ plane, bottom at HOVER_OFFSET
   boxMesh.scale.set(lastW, lastH, lastD);
   boxMesh.position.set(0, HOVER_OFFSET + lastH / 2, 0);
 
@@ -350,7 +369,6 @@ function updatePrism() {
 
   const volume = lastW * lastH * lastD;
   volumeDisplay.textContent = `Objętość: ${parseFloat(volume.toFixed(2))}`;
-
   updateSurfaceGrid(lastW, lastH, lastD);
   updateGroundGrid(Math.max(lastW, lastD));
 }
