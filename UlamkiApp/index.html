@@ -188,7 +188,7 @@
 // 0.0 = lines go all the way to the center (old behaviour)
 // 0.15 = lines stop 15% away from the center (clean look)
 // ============================================================
-const INNER_RADIUS_FRAC = 0.05;   // ← tweak this to your liking
+const INNER_RADIUS_FRAC = 0.01;   // ← tweak this to your liking
 
 const numInput = document.getElementById('num');
 const denInput = document.getElementById('den');
@@ -274,7 +274,7 @@ function draw() {
         const xOuter = cx + r * Math.cos(angle);
         const yOuter = cy + r * Math.sin(angle);
 
-        s += `<line x1="${xInner}" y1="${yInner}" x2="${xOuter}" y2="${yOuter}" stroke="black" stroke-width="0.8"/>`;
+        s += `<line x1="${xInner}" y1="${yInner}" x2="${xOuter}" y2="${yOuter}" stroke="black" stroke-width="0.9"/>`;
       }
 
       // 3. Outer circle outline (black, on top)
