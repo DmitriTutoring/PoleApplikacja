@@ -11,7 +11,7 @@
       height: 100vh;
       display: flex;
       flex-direction: column;
-      background: #f5f0e8;  /* warm pastel */
+      background: #f5f0e8;
       color: #2c2c2c;
       overflow: hidden;
     }
@@ -24,8 +24,8 @@
     .header {
       flex-shrink: 0;
       padding: 20px 24px 16px;
-      background: #f5f0e8;
-      border-bottom: 1px solid #e0d6c8;
+      background: #e8e0d4;
+      border-bottom: 1px solid #d5cdc0;
       position: relative;
     }
     .title {
@@ -112,18 +112,19 @@
       position: absolute;
       top: 20px;
       right: 24px;
-      font-size: 13px;
-      color: #999;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
       text-decoration: none;
       padding: 6px 12px;
-      border: 1px solid #d5cdc0;
+      border: 1px solid #b0a89e;
       border-radius: 6px;
       background: #fdfcf9;
       transition: background 0.2s;
     }
     .back-btn:hover {
-      background: #e8e2d6;
-      color: #666;
+      background: #d5cdc0;
+      color: #000;
     }
   </style>
 </head>
@@ -187,14 +188,12 @@ function draw() {
   denominator = Math.max(1, Math.min(20, denominator));
   numerator = clamp(numerator, 0, denominator);
 
-  // Sync sliders and text inputs
   numSlider.max = denominator;
   numSlider.value = numerator;
   numInput.value = numerator;
   denSlider.value = denominator;
   denInput.value = denominator;
 
-  // Display
   fractionText.textContent = `${numerator}/${denominator}`;
   decimalText.textContent = (numerator / denominator).toFixed(4).replace(/\.?0+$/, '');
 
@@ -204,7 +203,6 @@ function draw() {
   let s = '';
 
   if (mode === 'pie') {
-    // ---- PIE CHART ----
     const vbSize = 440;
     const cx = vbSize / 2;
     const cy = vbSize / 2;
@@ -235,12 +233,10 @@ function draw() {
         s += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z" fill="${fill}" stroke="#888" stroke-width="0.8"/>`;
       }
 
-      // Circle outline
       s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="black" stroke-width="2"/>`;
     }
 
   } else if (mode === 'bar') {
-    // ---- FRACTION BAR ----
     const UNIT = 48;
     const BAR_H = 100;
     const totalW = denominator * UNIT + 2 * PAD;
@@ -254,17 +250,13 @@ function draw() {
     const barX = PAD;
     const barY = PAD;
 
-    // Bar outline (rounded)
     s += `<rect x="${barX}" y="${barY}" width="${denominator * UNIT}" height="${BAR_H}" rx="6" ry="6" fill="none" stroke="black" stroke-width="2"/>`;
 
-    // Filled portion
     if (numerator > 0) {
       s += `<rect x="${barX}" y="${barY}" width="${numerator * UNIT}" height="${BAR_H}" rx="6" ry="6" fill="rgba(74, 144, 217, 0.35)"/>`;
-      // Redraw outline on top to keep borders sharp
       s += `<rect x="${barX}" y="${barY}" width="${denominator * UNIT}" height="${BAR_H}" rx="6" ry="6" fill="none" stroke="black" stroke-width="2"/>`;
     }
 
-    // Division lines
     for (let i = 1; i < denominator; i++) {
       const x = barX + i * UNIT;
       s += `<line x1="${x}" y1="${barY}" x2="${x}" y2="${barY + BAR_H}" stroke="#999" stroke-width="0.8"/>`;
@@ -274,7 +266,6 @@ function draw() {
   svg.innerHTML = s;
 }
 
-// ---- Event handlers ----
 function onNumChange() {
   let val = parseInt(numInput.value) || 0;
   const den = parseInt(denInput.value) || 1;
@@ -289,7 +280,6 @@ function onDenChange() {
   val = Math.max(1, Math.min(20, val));
   denInput.value = val;
   denSlider.value = val;
-  // Cap numerator if needed
   let num = parseInt(numInput.value) || 0;
   if (num > val) {
     num = val;
@@ -322,7 +312,6 @@ denSlider.oninput = () => {
 
 modeSelect.onchange = () => draw();
 
-// Initial draw
 draw();
 </script>
 </body>
