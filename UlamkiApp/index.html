@@ -63,11 +63,20 @@
       background: #fdfcf9;
     }
     input[type="range"] {
-  width: 140px;          /* keep your existing width */
-  accent-color: #4a90d9;
-  cursor: pointer;
-  /* no custom pseudo‑elements */
-}
+      width: 120px;
+      accent-color: #4a90d9;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      background: #d5cdc0;
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type="range"]::-moz-range-track {
+      background: #d5cdc0;
+      height: 6px;
+      border-radius: 3px;
+    }
     select {
       padding: 6px 10px;
       border: 1px solid #d5cdc0;
@@ -222,7 +231,8 @@ function draw() {
   decimalText.textContent = (numerator / denominator).toFixed(4).replace(/\.?0+$/, '');
 
   const mode = modeSelect.value;
-  const fillColor = hexToRgba(colorPicker.value, 0.35);
+  const fillColor = hexToRgba(colorPicker.value, 0.65);   // less transparent, but still slightly see‑through
+  const unfilledColor = 'rgba(200, 200, 200, 0.08)';      // barely visible unfilled slices
 
   const PAD = 40;
   let s = '';
@@ -241,6 +251,7 @@ function draw() {
     if (denominator > 0) {
       const angleStep = (2 * Math.PI) / denominator;
 
+      // 1. Draw the filled / unfilled slices (filled first, so they stay behind the lines)
       for (let i = 0; i < denominator; i++) {
         const startAngle = -Math.PI / 2 + i * angleStep;
         const endAngle = startAngle + angleStep;
@@ -251,13 +262,12 @@ function draw() {
         const y2 = cy + r * Math.sin(endAngle);
 
         const largeArc = angleStep > Math.PI ? 1 : 0;
-        const fill = i < numerator
-          ? fillColor
-          : 'rgba(200, 200, 200, 0.08)';
+        const fill = i < numerator ? fillColor : unfilledColor;
 
-        s += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z" fill="${fill}" stroke="#888" stroke-width="0.8"/>`;
+        s += `<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc},1 ${x2},${y2} Z" fill="${fill}" stroke="black" stroke-width="1.2"/>`;
       }
 
+      // 2. Circle outline on top
       s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="black" stroke-width="2"/>`;
     }
 
