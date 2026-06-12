@@ -24,8 +24,9 @@
     .header {
       flex-shrink: 0;
       padding: 20px 24px 16px;
-      background: #f5f0e8;          /* same as body – no white card */
-      border-bottom: 1px solid #e0d6c8; /* subtle soft line */
+      background: #f5f0e8;
+      border-bottom: 1px solid #e0d6c8;
+      position: relative;
     }
     .title {
       margin: 0 0 14px;
@@ -59,7 +60,7 @@
       border-radius: 6px;
       font-size: 14px;
       text-align: center;
-      background: #fdfcf9;  /* slightly lighter for input readability, but still soft */
+      background: #fdfcf9;
     }
     input[type="range"] {
       width: 120px;
@@ -98,15 +99,31 @@
       justify-content: center;
       align-items: center;
       padding: 16px;
-      background: #f5f0e8;   /* same pastel as body */
+      background: #f5f0e8;
       overflow: auto;
     }
     svg {
       display: block;
       max-width: 100%;
       max-height: 100%;
-      background: #f5f0e8;          /* no white card, same pastel as everything */
-      /* removed box-shadow and border-radius for a seamless look */
+      background: #f5f0e8;
+    }
+    .back-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      font-size: 13px;
+      color: #999;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid #d5cdc0;
+      border-radius: 6px;
+      background: #fdfcf9;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #e8e2d6;
+      color: #666;
     }
   </style>
 </head>
@@ -114,6 +131,7 @@
 <div class="app">
   <div class="header">
     <h2 class="title">Wizualizacja ułamków</h2>
+    <a href="../index.html" class="back-btn">← Powrót do menu</a>
     <div class="controls">
       <div class="control-group">
         <label>Licznik:
