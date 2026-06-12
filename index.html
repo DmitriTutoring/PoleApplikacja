@@ -1,121 +1,120 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pole prostokąta</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: white;
-    color: #2c2c2c;
-    overflow: hidden;
-  }
-  .app {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-  .header {
-    flex-shrink: 0;
-    padding: 20px 24px 16px;
-    border-bottom: 1px solid #e0e0e0;
-  }
-  .title {
-    margin: 0 0 12px;
-    font-weight: 600;
-    font-size: 20px;
-    color: #111;
-  }
-  .controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    row-gap: 10px;
-  }
-  .control-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  label {
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-  input[type="text"] {
-    width: 80px;
-    padding: 6px 8px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    text-align: center;
-  }
-  input[type="range"] {
-    width: 140px;
-    accent-color: #4a90d9;
-    cursor: pointer;
-  }
-  select {
-    padding: 6px 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    cursor: pointer;
-    margin-left: auto;
-  }
-  .hint {
-    font-size: 13px;
-    color: #777;
-    margin-top: 8px;
-  }
-  .canvas-wrap {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 8px;
-    background: white;
-    overflow: auto;
-    gap: 16px;
-  }
-  .area-display {
-    font-size: 36px;
-    font-weight: 700;
-    color: #111;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .svg-container {
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: auto;
-    cursor: grab;
-  }
-  .svg-container:active {
-    cursor: grabbing;
-  }
-  svg {
-    display: block;
-    background: transparent;
-    border: none;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pole prostokąta / trójkąta</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      color: #2c2c2c;
+      overflow: hidden;
+    }
+    .app {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .header {
+      flex-shrink: 0;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .title {
+      margin: 0 0 12px;
+      font-weight: 600;
+      font-size: 20px;
+      color: #111;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      row-gap: 10px;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label {
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    input[type="text"] {
+      width: 80px;
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+    }
+    input[type="range"] {
+      width: 140px;
+      accent-color: #4a90d9;
+      cursor: pointer;
+    }
+    select {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      cursor: pointer;
+    }
+    .hint {
+      font-size: 13px;
+      color: #777;
+      margin-top: 8px;
+    }
+    .canvas-wrap {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+      background: white;
+      overflow: auto;
+      gap: 16px;
+    }
+    .area-display {
+      font-size: 36px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .svg-container {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: auto;
+      cursor: grab;
+    }
+    .svg-container:active {
+      cursor: grabbing;
+    }
+    svg {
+      display: block;
+      background: transparent;
+      border: none;
+    }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -134,12 +133,16 @@
         </label>
         <input id="hs" type="range" min="0" max="20" step="1" value="3">
       </div>
-      <select id="shapeSelect">
-        <option value="rectangle" selected>Prostokąt</option>
-        <option value="triangle">Trójkąt prostokątny</option>
-      </select>
+      <div class="control-group">
+        <label>Kształt:
+          <select id="shapeSelect">
+            <option value="rectangle" selected>Prostokąt</option>
+            <option value="triangle">Trójkąt prostokątny</option>
+          </select>
+        </label>
+      </div>
     </div>
-    <div class="hint">Użyj kółka myszy do powiększania. Wybierz kształt z listy.</div>
+    <div class="hint">Prostokąt i siatka jednostkowa dopasowują się do okna. Użyj kółka myszy do powiększania.</div>
   </div>
 
   <div class="canvas-wrap">
@@ -163,7 +166,6 @@ const areaDisplay = document.getElementById('areaDisplay');
 const svg = document.getElementById('svg');
 const svgContainer = document.getElementById('svgContainer');
 
-// ---- Zoom state ----
 let zoom = 1.0;
 const ZOOM_MIN = 0.5;
 const ZOOM_MAX = 4.0;
@@ -182,12 +184,11 @@ function draw() {
   const height = num(h.value);
   const shape = shapeSelect.value;
 
-  // Area calculation
   let area;
-  if (shape === 'rectangle') {
-    area = width * height;
-  } else if (shape === 'triangle') {
+  if (shape === 'triangle') {
     area = (width * height) / 2;
+  } else {
+    area = width * height;
   }
   areaDisplay.textContent = `Pole: ${fmt(area)}`;
 
@@ -218,60 +219,27 @@ function draw() {
     s += `<line x1="${ox}" y1="${oy + y * UNIT}" x2="${ox + cols * UNIT}" y2="${oy + y * UNIT}" stroke="#666" stroke-width="0.5"/>`;
   }
 
-  // 2. Filled unit squares – partially filled for triangle
+  // 2. Filled unit squares (only for rectangle – they remain as the base area)
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      let vw = Math.max(0, Math.min(1, width - x));
-      let vh = Math.max(0, Math.min(1, height - y));
-
-      if (shape === 'triangle') {
-        // For a right triangle with legs on the bottom and left edges:
-        // A unit square at (x, y) is inside the triangle if
-        // the entire square is within the triangle bounds.
-        // The square's right edge is at (x+1)*UNIT, top edge at (y+1)*UNIT.
-        // The triangle line goes from (ox, oy+height*UNIT) to (ox+width*UNIT, oy).
-        // Equation: Y = oy + height*UNIT - (height/width)*(X - ox)
-        const squareRight = (x + 1) * UNIT;
-        const squareTop = (y + 1) * UNIT;
-        const triangleEdgeY = height * UNIT - (height / width) * (squareRight - 0);
-        
-        // The square is fully inside if its top-right corner is below the hypotenuse
-        if (squareTop > triangleEdgeY) {
-          continue; // square is completely outside the triangle
-        }
-        
-        // Check if square is partially cut by the hypotenuse
-        const squareBottom = y * UNIT;
-        const squareLeft = x * UNIT;
-        const edgeAtLeft = height * UNIT - (height / width) * squareLeft;
-        const edgeAtRight = height * UNIT - (height / width) * squareRight;
-        
-        if (squareTop <= edgeAtRight && squareBottom >= 0) {
-          // square fully inside
-          vw = 1;
-          vh = 1;
-        } else {
-          // partially inside – simplified: just fill the whole square for now
-          // but mark it with lower opacity or different color
-          vw = 1;
-          vh = 1;
-        }
-      }
-
+      const vw = Math.max(0, Math.min(1, width - x));
+      const vh = Math.max(0, Math.min(1, height - y));
       if (vw <= 0 || vh <= 0) continue;
-
       s += `<rect x="${ox + x * UNIT}" y="${oy + y * UNIT}" width="${vw * UNIT}" height="${vh * UNIT}" fill="rgba(74, 144, 217, 0.35)"/>`;
     }
   }
 
-  // 3. Shape outline
-  if (shape === 'rectangle') {
-    s += `<rect x="${ox}" y="${oy}" width="${width * UNIT}" height="${height * UNIT}" fill="none" stroke="black" stroke-width="2"/>`;
-  } else if (shape === 'triangle') {
-    const p1 = `${ox},${oy + height * UNIT}`;
-    const p2 = `${ox + width * UNIT},${oy + height * UNIT}`;
-    const p3 = `${ox},${oy}`;
-    s += `<polygon points="${p1} ${p2} ${p3}" fill="none" stroke="black" stroke-width="2"/>`;
+  // 3. Rectangle outline (always shown)
+  s += `<rect x="${ox}" y="${oy}" width="${width * UNIT}" height="${height * UNIT}" fill="none" stroke="black" stroke-width="2"/>`;
+
+  // 4. Triangle overlay (if shape is triangle)
+  if (shape === 'triangle') {
+    // Right‑angled triangle: right angle at (ox, oy) – legs along x and y axes.
+    // Points: (ox, oy), (ox + width*UNIT, oy), (ox, oy + height*UNIT)
+    const p1 = `${ox},${oy}`;
+    const p2 = `${ox + width * UNIT},${oy}`;
+    const p3 = `${ox},${oy + height * UNIT}`;
+    s += `<polygon points="${p1} ${p2} ${p3}" fill="rgba(74, 144, 217, 0.25)" stroke="black" stroke-width="2"/>`;
   }
 
   svg.innerHTML = s;
