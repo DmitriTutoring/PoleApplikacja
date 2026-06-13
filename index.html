@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Korepetycje – materiały</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  // Default to dark unless user explicitly chose light
+  if (localStorage.getItem('theme') !== 'light') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+</script>
+  <link rel="stylesheet" href="shared/common.css">
+  <style>
+    body { min-height: 100dvh; display: flex; flex-direction: column; }
+    .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; gap: 28px; }
+    .page-title { font-size: 24px; font-weight: 700; text-align: center; }
+    .footer { text-align: center; font-size: 12px; color: var(--text-muted); padding: 16px; }
+    @media (max-width: 600px) {
+      .main { padding: 24px 16px; gap: 20px; justify-content: flex-start; padding-top: 32px; }
+      .page-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="topbar-title">Korepetycje</span>
+    <label class="theme-toggle" title="Tryb ciemny / jasny">
+      <input type="checkbox" id="themeToggle">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-icon">🌙</span>
+    </label>
+  </div>
+  <div class="main">
+    <h1 class="page-title">Materiały korepetytorskie</h1>
+    <div class="card-grid">
+      <a href="Books/index.html" class="card">
+        <div class="card-icon">📚</div>
+        <div><div class="card-title">Podręczniki</div><div class="card-desc">Linki do darmowych podręczników i materiałów online.</div></div>
+      </a>
+      <a href="Apps/index.html" class="card">
+        <div class="card-icon">🧮</div>
+        <div><div class="card-title">Aplikacje</div><div class="card-desc">Interaktywne wizualizacje matematyczne.</div></div>
+      </a>
+    </div>
+  </div>
+  <div class="footer">Twoje narzędzia korepetytorskie</div>
+  <script src="shared/theme.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pole figury</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  // Default to dark unless user explicitly chose light
+  if (localStorage.getItem('theme') !== 'light') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+</script>
+  <link rel="stylesheet" href="../../shared/common.css">
+  <style>
+    body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .canvas-wrap {
+      flex: 1; min-height: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px; padding: 10px;
+    }
+    .area-display { flex-shrink: 0; font-size: 42px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; text-align: center; line-height: 1.1; }
+    .area-sub { font-size: 15px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+    .svg-container { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; overflow: auto; cursor: grab; }
+    .svg-container:active { cursor: grabbing; }
+    svg { display: block; }
+    @media (max-width: 600px) {
+      .area-display { font-size: 32px; }
+      .area-sub { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="topbar-title">Pole figury</span>
+    <div class="topbar-right">
+      <label class="theme-toggle" title="Tryb ciemny / jasny">
+      <input type="checkbox" id="themeToggle">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-icon">🌙</span>
+    </label>
+      <a href="../index.html" class="back-btn">← Powrót</a>
+    </div>
+  </div>
+  <div class="canvas-wrap">
+    <div class="area-display">Pole: <span id="areaVal">15</span><span class="area-sub">jedn²</span></div>
+    <div class="svg-container" id="svgContainer"><svg id="svg"></svg></div>
+  </div>
+  <div class="controls-bar">
+    <div class="control-group">
+      <span class="ctrl-label" id="widthLabel">Długość</span>
+      <input id="w" type="text" inputmode="decimal" value="5">
+      <input id="ws" type="range" min="0" max="20" step="1" value="5">
+    </div>
+    <div class="bar-divider"></div>
+    <div class="control-group" id="heightGroup">
+      <span class="ctrl-label" id="heightLabel">Wysokość</span>
+      <input id="h" type="text" inputmode="decimal" value="3">
+      <input id="hs" type="range" min="0" max="20" step="1" value="3">
+    </div>
+    <div class="bar-divider"></div>
+    <div class="control-group">
+      <span class="ctrl-label">Kształt</span>
+      <select id="shapeSelect">
+        <option value="rectangle" selected>Prostokąt</option>
+        <option value="rightTriangle">Trójkąt prostokątny</option>
+        <option value="equilateral">Trójkąt równoboczny</option>
+        <option value="triangle">Trójkąt równoramienny</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <span class="ctrl-label">Kolor</span>
+      <input id="colorPicker" type="color" value="#4a90d9">
+    </div>
+    <div class="bar-divider"></div>
+    <!-- Checkbox for unit grid -->
+    <div class="control-group">
+      <span class="ctrl-label">Siatka</span>
+      <input type="checkbox" id="gridCheckbox" checked>
+    </div>
+  </div>
+  <script src="../../shared/theme.js"></script>
+  <script>
+  const UNIT=40,PADDING=2*UNIT;
+  const w=document.getElementById('w'),h=document.getElementById('h');
+  const ws=document.getElementById('ws'),hs=document.getElementById('hs');
+  const shapeSelect=document.getElementById('shapeSelect'),colorPicker=document.getElementById('colorPicker');
+  const areaVal=document.getElementById('areaVal'),svg=document.getElementById('svg'),svgContainer=document.getElementById('svgContainer');
+  const gridCheckbox = document.getElementById('gridCheckbox');
+  const widthLabel = document.getElementById('widthLabel');
+  const heightGroup = document.getElementById('heightGroup');
+  let zoom=1.0;
+
+  function num(v){return Math.max(0,Math.min(20,parseFloat(v)||0));}
+  function fmt(n){return parseFloat(n.toFixed(4)).toString();}
+  function hexToRgba(hex,alpha){hex=hex.replace('#','');const r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return `rgba(${r},${g},${b},${alpha})`;}
+  function isDark(){return document.documentElement.getAttribute('data-theme')==='dark';}
+
+  function draw(){
+    const shape = shapeSelect.value;
+    let width = num(w.value);
+    let height = num(h.value);
+
+    // Auto‑compute height for equilateral triangle
+    if (shape === 'equilateral') {
+      height = width * Math.sqrt(3) / 2;
+    }
+
+    const fill=hexToRgba(colorPicker.value,0.35);
+    const dark=isDark(),gs=dark?'#555':'#666',ss=dark?'#ccc':'black';
+
+    // Area calculation
+    let area;
+    if (shape === 'rectangle') {
+      area = width * height;
+    } else if (shape === 'equilateral') {
+      area = (Math.sqrt(3) / 4) * width * width;
+    } else {
+      // rightTriangle or triangle (both use base*height/2)
+      area = (width * height) / 2;
+    }
+    areaVal.textContent = fmt(area);
+
+    const cols=Math.max(1, Math.ceil(width));
+    const rows=Math.max(1, Math.ceil(height));
+    const bW=cols*UNIT+2*PADDING, bH=rows*UNIT+2*PADDING;
+    svg.setAttribute('viewBox',`0 0 ${bW} ${bH}`);
+    svg.setAttribute('width',bW*zoom); svg.setAttribute('height',bH*zoom);
+    const ox=PADDING, oy=PADDING;
+    let s='';
+
+    // Unit grid (if enabled)
+    if (gridCheckbox.checked) {
+      for(let x=0;x<=cols;x++) s+=`<line x1="${ox+x*UNIT}" y1="${oy}" x2="${ox+x*UNIT}" y2="${oy+rows*UNIT}" stroke="${gs}" stroke-width="0.5"/>`;
+      for(let y=0;y<=rows;y++) s+=`<line x1="${ox}" y1="${oy+y*UNIT}" x2="${ox+cols*UNIT}" y2="${oy+y*UNIT}" stroke="${gs}" stroke-width="0.5"/>`;
+    }
+
+    // Drawing the shape
+    if (shape === 'rectangle') {
+      s+=`<rect x="${ox}" y="${oy}" width="${width*UNIT}" height="${height*UNIT}" fill="none" stroke="${ss}" stroke-width="2"/>`;
+      for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+        const vw=Math.max(0,Math.min(1,width-x)), vh=Math.max(0,Math.min(1,height-y));
+        if(vw>0 && vh>0) s+=`<rect x="${ox+x*UNIT}" y="${oy+y*UNIT}" width="${vw*UNIT}" height="${vh*UNIT}" fill="${fill}"/>`;
+      }
+    } else {
+      // Triangles: draw filled polygon + outline
+      let pts;
+      if (shape === 'rightTriangle') {
+        // Apex at top‑left, right angle at bottom‑left
+        pts = `${ox},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
+      } else if (shape === 'equilateral') {
+        // Apex centered, base at bottom
+        const apexX = ox + width*UNIT/2;
+        pts = `${apexX},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
+      } else { // generic triangle (isosceles)
+        const apexX = ox + width*UNIT/2;
+        pts = `${apexX},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
+      }
+      s+=`<polygon points="${pts}" fill="${fill}" stroke="${ss}" stroke-width="2"/>`;
+    }
+
+    svg.innerHTML = s;
+  }
+
+  // Toggle height controls and label for equilateral
+  function updateUIForShape() {
+    const shape = shapeSelect.value;
+    if (shape === 'equilateral') {
+      heightGroup.style.display = 'none';
+      widthLabel.textContent = 'Bok';
+    } else {
+      heightGroup.style.display = '';
+      widthLabel.textContent = 'Długość';
+    }
+  }
+
+  shapeSelect.addEventListener('change', () => {
+    updateUIForShape();
+    draw();
+  });
+
+  svgContainer.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zoom = Math.max(0.5, Math.min(4, zoom + (e.deltaY > 0 ? -0.1 : 0.1)));
+    draw();
+  }, {passive: false});
+
+  w.oninput = draw;
+  h.oninput = draw;
+  ws.oninput = () => { w.value = ws.value; draw(); };
+  hs.oninput = () => { h.value = hs.value; draw(); };
+  colorPicker.oninput = draw;
+  gridCheckbox.addEventListener('change', draw);
+  window.addEventListener('themechange', draw);
+
+  // Initial UI state
+  updateUIForShape();
+  draw();
+  </script>
+</body>
+</html>

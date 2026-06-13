@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prostopadłościan – objętość</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  // Default to dark unless user explicitly chose light
+  if (localStorage.getItem('theme') !== 'light') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+</script>
+  <link rel="stylesheet" href="../../shared/common.css">
+  <style>
+    body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+    .canvas-wrap { flex: 1; min-height: 0; position: relative; }
+    .vol-display {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 10; font-size: 36px; font-weight: 700; color: var(--text);
+      letter-spacing: -0.02em; text-align: center; pointer-events: none;
+      white-space: nowrap;
+    }
+    .vol-sub { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-left: 5px; }
+    canvas { display: block; width: 100% !important; height: 100% !important; }
+    @media (max-width: 600px) {
+      .vol-display { font-size: 28px; top: 10px; }
+      .vol-sub { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="topbar-title">Prostopadłościan – objętość</span>
+    <div class="topbar-right">
+      <label class="theme-toggle" title="Tryb ciemny / jasny">
+      <input type="checkbox" id="themeToggle">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-icon">🌙</span>
+    </label>
+      <a href="../index.html" class="back-btn">← Powrót</a>
+    </div>
+  </div>
+  <div class="canvas-wrap" id="canvasContainer">
+    <div class="vol-display">Objętość: <span id="volVal">1</span><span class="vol-sub">jedn³</span></div>
+  </div>
+  <div class="controls-bar">
+    <div class="control-group">
+      <span class="ctrl-label">Szerokość</span>
+      <input id="w" type="text" inputmode="decimal" value="1">
+      <input id="ws" type="range" min="0" max="10" step="1" value="1">
+    </div>
+    <div class="bar-divider"></div>
+    <div class="control-group">
+      <span class="ctrl-label">Wysokość</span>
+      <input id="h" type="text" inputmode="decimal" value="1">
+      <input id="hs" type="range" min="0" max="10" step="1" value="1">
+    </div>
+    <div class="bar-divider"></div>
+    <div class="control-group">
+      <span class="ctrl-label">Głębokość</span>
+      <input id="d" type="text" inputmode="decimal" value="1">
+      <input id="ds" type="range" min="0" max="10" step="1" value="1">
+    </div>
+    <div class="bar-divider"></div>
+    <!-- New checkbox for surface grid -->
+    <div class="control-group">
+      <span class="ctrl-label">Siatka bryły</span>
+      <input type="checkbox" id="surfaceGridCheckbox" checked>
+    </div>
+  </div>
+  <script src="../../shared/theme.js"></script>
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/"}}</script>
+  <script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  const wI=document.getElementById('w'),hI=document.getElementById('h'),dI=document.getElementById('d');
+  const wsS=document.getElementById('ws'),hsS=document.getElementById('hs'),dsS=document.getElementById('ds');
+  const volVal=document.getElementById('volVal'),container=document.getElementById('canvasContainer');
+  const surfaceGridCheckbox = document.getElementById('surfaceGridCheckbox');
+
+  function isDark(){return document.documentElement.getAttribute('data-theme')==='dark';}
+  function getBg(){return isDark()?'#1c1b18':'#f5f0e8';}
+  function getEdge(){return isDark()?'#c0b8a8':'#111111';}
+  function getGrid(){return isDark()?['#444440','#2e2c28']:['#bbbbbb','#dddddd'];}
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(getBg());
+  const camera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,0.1,100);
+  camera.position.set(8,5,10);camera.lookAt(0,1,0);
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(container.clientWidth,container.clientHeight);
+  container.appendChild(renderer.domElement);
+  const controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.1;controls.target.set(0,1,0);controls.update();
+  scene.add(new THREE.AmbientLight(0xffffff,0.6));
+  const dl=new THREE.DirectionalLight(0xffffff,0.8);dl.position.set(5,10,7);scene.add(dl);
+  let groundGrid=null;
+  const boxMat=new THREE.MeshStandardMaterial({color:'#4a90d9',roughness:0.3,metalness:0.1,transparent:true,opacity:0.85,side:THREE.DoubleSide});
+  const boxMesh=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),boxMat);scene.add(boxMesh);
+  const sgg=new THREE.Group(),eg=new THREE.Group();scene.add(sgg);scene.add(eg);
+  const LT=0.022;
+  function mkLine(x1,y1,z1,x2,y2,z2,c){const dx=x2-x1,dy=y2-y1,dz=z2-z1,len=Math.sqrt(dx*dx+dy*dy+dz*dz);let geo;if(Math.abs(dy)>0.001)geo=new THREE.BoxGeometry(LT,len,LT);else if(Math.abs(dx)>0.001)geo=new THREE.BoxGeometry(len,LT,LT);else geo=new THREE.BoxGeometry(LT,LT,len);const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:c}));m.position.set((x1+x2)/2,(y1+y2)/2,(z1+z2)/2);return m;}
+  function mkCorner(x,y,z,c){const m=new THREE.Mesh(new THREE.BoxGeometry(LT,LT,LT),new THREE.MeshBasicMaterial({color:c}));m.position.set(x,y,z);return m;}
+  const HO=0.24;let lW=1,lH=1,lD=1;
+  function updateGrid(md){if(groundGrid)scene.remove(groundGrid);const sz=Math.max(md,4)+2,[gc,gs]=getGrid();groundGrid=new THREE.GridHelper(sz,Math.ceil(sz),gc,gs);groundGrid.position.y=0;scene.add(groundGrid);}
+  function updateSurface(w,h,d){
+    while(sgg.children.length)sgg.remove(sgg.children[0]);
+    while(eg.children.length)eg.remove(eg.children[0]);
+    if(w<=0||h<=0||d<=0)return;
+    const ec=getEdge(),hw=w/2,hd=d/2,ty=HO+h,by=HO;
+    function gp(t,ho){const p=[];for(let i=0;i<=Math.floor(t);i++)p.push(i-ho);if(!p.includes(ho))p.push(ho);if(!p.includes(-ho))p.push(-ho);return p;}
+    const xp=gp(w,hw),zp=gp(d,hd),yp=[];
+    for(let i=0;i<=Math.floor(h);i++)yp.push(by+i);
+    if(!yp.includes(ty))yp.push(ty);if(!yp.includes(by))yp.push(by);
+    function al(x1,y1,z1,x2,y2,z2){sgg.add(mkLine(x1,y1,z1,x2,y2,z2,ec));}
+    for(const x of xp){al(x,by,hd,x,ty,hd);al(x,by,-hd,x,ty,-hd);}
+    for(const y of yp){al(-hw,y,hd,hw,y,hd);al(-hw,y,-hd,hw,y,-hd);}
+    for(const z of zp){al(hw,by,z,hw,ty,z);al(-hw,by,z,-hw,ty,z);}
+    for(const y of yp){al(hw,y,-hd,hw,y,hd);al(-hw,y,-hd,-hw,y,hd);}
+    for(const x of xp){al(x,ty,-hd,x,ty,hd);al(x,by,-hd,x,by,hd);}
+    for(const z of zp){al(-hw,ty,z,hw,ty,z);al(-hw,by,z,hw,by,z);}
+    const corners=[[-hw,by,-hd],[hw,by,-hd],[hw,by,hd],[-hw,by,hd],[-hw,ty,-hd],[hw,ty,-hd],[hw,ty,hd],[-hw,ty,hd]];
+    const edges=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+    for(const[i,j]of edges){const p=corners[i],q=corners[j];eg.add(mkLine(p[0],p[1],p[2],q[0],q[1],q[2],ec));}
+    for(const[cx,cy,cz]of corners)eg.add(mkCorner(cx,cy,cz,ec));
+  }
+  function updatePrism(){
+    boxMesh.scale.set(lW,lH,lD);
+    boxMesh.position.set(0,HO+lH/2,0);
+    boxMesh.visible=(lW>0&&lH>0&&lD>0);
+    volVal.textContent=parseFloat((lW*lH*lD).toFixed(2));
+    updateSurface(lW,lH,lD);
+    updateGrid(Math.max(lW,lD));
+    // Sync surface grid visibility
+    sgg.visible = surfaceGridCheckbox.checked;
+  }
+  function applyTheme(){scene.background=new THREE.Color(getBg());updatePrism();}
+  window.addEventListener('themechange',applyTheme);
+
+  // Checkbox event
+  surfaceGridCheckbox.addEventListener('change', () => {
+    sgg.visible = surfaceGridCheckbox.checked;
+  });
+
+  function onSlider(){lW=parseFloat(wsS.value);lH=parseFloat(hsS.value);lD=parseFloat(dsS.value);wI.value=lW;hI.value=lH;dI.value=lD;updatePrism();}
+  wsS.addEventListener('input',onSlider);hsS.addEventListener('input',onSlider);dsS.addEventListener('input',onSlider);
+  function bindText(inp,sl,getV,setV){inp.addEventListener('change',()=>{const v=parseFloat(inp.value);if(!isNaN(v)){setV(Math.max(0,Math.min(10,v)));sl.value=getV();inp.value=getV();updatePrism();}else inp.value=getV();});}
+  bindText(wI,wsS,()=>lW,v=>{lW=v;});bindText(hI,hsS,()=>lH,v=>{lH=v;});bindText(dI,dsS,()=>lD,v=>{lD=v;});
+  const ro=new ResizeObserver(()=>{camera.aspect=container.clientWidth/container.clientHeight;camera.updateProjectionMatrix();renderer.setSize(container.clientWidth,container.clientHeight);});
+  ro.observe(container);
+  function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera);}
+  updatePrism();animate();
+  </script>
+</body>
+</html>

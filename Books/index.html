@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Podręczniki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  // Default to dark unless user explicitly chose light
+  if (localStorage.getItem('theme') !== 'light') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+</script>
+  <link rel="stylesheet" href="../shared/common.css">
+  <style>
+    body { min-height: 100dvh; display: flex; flex-direction: column; }
+    .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 20px; gap: 16px; }
+    .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); align-self: flex-start; max-width: 880px; width: 100%; }
+    .book-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; max-width: 880px; width: 100%; }
+    .book-card {
+      background: var(--bg-card); border: 1.5px solid var(--border); border-radius: 12px;
+      padding: 18px 12px; text-align: center; text-decoration: none; color: var(--text);
+      display: block; box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.2s, background 0.2s;
+    }
+    .book-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+    .book-icon { font-size: 28px; margin-bottom: 7px; }
+    .book-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .book-desc { font-size: 12px; color: var(--text-sub); }
+    @media (max-width: 600px) {
+      .main { padding: 20px 14px; gap: 12px; justify-content: flex-start; padding-top: 24px; }
+      .book-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .book-card { padding: 14px 10px; }
+      .book-icon { font-size: 26px; }
+      .book-title { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="topbar-title">Podręczniki</span>
+    <div class="topbar-right">
+      <label class="theme-toggle" title="Tryb ciemny / jasny">
+      <input type="checkbox" id="themeToggle">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-icon">🌙</span>
+    </label>
+      <a href="../index.html" class="back-btn">← Menu</a>
+    </div>
+  </div>
+  <div class="main">
+    <span class="section-label">Podręczniki – klasy 5–8</span>
+    <div class="book-grid">
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/3162" target="_blank"><div class="book-icon">📘</div><div class="book-title">Klasa 5</div><div class="book-desc">Podręcznik</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2990" target="_blank"><div class="book-icon">📘</div><div class="book-title">Klasa 6</div><div class="book-desc">Podręcznik</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2770" target="_blank"><div class="book-icon">📘</div><div class="book-title">Klasa 7</div><div class="book-desc">Podręcznik</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2444" target="_blank"><div class="book-icon">📘</div><div class="book-title">Klasa 8</div><div class="book-desc">Podręcznik</div></a>
+    </div>
+    <span class="section-label">Zbiory zadań – klasy 5–8</span>
+    <div class="book-grid">
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2456" target="_blank"><div class="book-icon">📙</div><div class="book-title">Klasa 5</div><div class="book-desc">Zbiór zadań</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2554" target="_blank"><div class="book-icon">📙</div><div class="book-title">Klasa 6</div><div class="book-desc">Zbiór zadań</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2771" target="_blank"><div class="book-icon">📙</div><div class="book-title">Klasa 7</div><div class="book-desc">Zbiór zadań</div></a>
+      <a class="book-card" href="https://flipbook.apps.gwo.pl/display/2464" target="_blank"><div class="book-icon">📙</div><div class="book-title">Klasa 8</div><div class="book-desc">Zbiór zadań</div></a>
+    </div>
+  </div>
+  <script src="../shared/theme.js"></script>
+</body>
+</html>
