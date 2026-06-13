@@ -13,21 +13,22 @@
 </script>
   <link rel="stylesheet" href="../../shared/common.css">
   <style>
-    body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-    .canvas-wrap {
-      flex: 1; min-height: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 8px; padding: 10px;
-    }
-    .area-display { flex-shrink: 0; font-size: 42px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; text-align: center; line-height: 1.1; }
-    .area-sub { font-size: 15px; font-weight: 500; color: var(--text-muted); margin-left: 6px; }
-    .svg-container { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; overflow: auto; cursor: grab; }
-    .svg-container:active { cursor: grabbing; }
-    svg { display: block; }
-    @media (max-width: 600px) {
-      .area-display { font-size: 32px; }
-      .area-sub { font-size: 13px; }
-    }
-  </style>
+  body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  .canvas-wrap {
+    flex: 1; min-height: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: clamp(4px, 1vh, 8px);
+    padding: clamp(6px, 2vw, 10px); overflow: hidden;
+  }
+  .area-display { flex-shrink: 0; font-size: clamp(28px, 8vw, 42px); font-weight: 700; color: var(--text); letter-spacing: -0.02em; text-align: center; line-height: 1.1; }
+  .area-sub { font-size: clamp(13px, 3.5vw, 15px); font-weight: 500; color: var(--text-muted); margin-left: 6px; }
+  .svg-container { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; overflow: auto; cursor: grab; touch-action: manipulation; }
+  .svg-container:active { cursor: grabbing; }
+  svg { display: block; }
+  @media (max-width: 600px) {
+    .area-display { font-size: clamp(24px, 7vw, 32px); }
+    .area-sub { font-size: clamp(11px, 3vw, 13px); }
+  }
+</style>
 </head>
 <body>
   <div class="topbar">
