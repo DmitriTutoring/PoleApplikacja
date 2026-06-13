@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pole figury</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script>
   // Default to dark unless user explicitly chose light
   if (localStorage.getItem('theme') !== 'light') {
@@ -22,16 +25,17 @@
     .area-display { flex-shrink: 0; font-size: clamp(28px, 8vw, 42px); font-weight: 700; color: var(--text); letter-spacing: -0.02em; text-align: center; line-height: 1.1; }
     .area-sub { font-size: clamp(13px, 3.5vw, 15px); font-weight: 500; color: var(--text-muted); margin-left: 6px; }
     .area-formula {
-      flex-shrink: 0; font-size: clamp(14px, 4vw, 20px); font-weight: 500; color: var(--text-muted);
-      text-align: center; line-height: 1.4; margin-top: 2px;
+      flex-shrink: 0; text-align: center; font-size: clamp(16px, 4vw, 22px);
+      color: var(--text); margin-top: 2px;
     }
+    .area-formula .katex { font-size: inherit; }
     .svg-container { flex: 1; min-height: 0; width: 100%; display: flex; justify-content: center; align-items: center; overflow: auto; cursor: grab; touch-action: manipulation; }
     .svg-container:active { cursor: grabbing; }
     svg { display: block; }
     @media (max-width: 600px) {
       .area-display { font-size: clamp(24px, 7vw, 32px); }
       .area-sub { font-size: clamp(11px, 3vw, 13px); }
-      .area-formula { font-size: clamp(12px, 3.5vw, 16px); }
+      .area-formula { font-size: clamp(14px, 3.5vw, 18px); }
     }
   </style>
 </head>
@@ -49,7 +53,7 @@
   </div>
   <div class="canvas-wrap">
     <div class="area-display">Pole: <span id="areaVal">15</span><span class="area-sub">jedn²</span></div>
-    <div class="area-formula" id="areaFormula">P = a·b = 5·3 = 15 jedn²</div>
+    <div class="area-formula" id="areaFormula"></div>
     <div class="svg-container" id="svgContainer"><svg id="svg"></svg></div>
   </div>
   <div class="controls-bar">
@@ -115,28 +119,31 @@
     const dark=isDark(),gs=dark?'#555':'#666',ss=dark?'#ccc':'black';
 
     let area;
-    let formulaSym, formulaSub;
+    let formulaSym, formulaSub, latexString;
 
     if (shape === 'rectangle') {
       area = width * height;
-      formulaSym = 'P = a·b';
-      formulaSub = `${width}·${height} = ${fmt(area)} jedn²`;
+      formulaSym = 'P = a \\cdot b';
+      formulaSub = `${width} \\cdot ${height} = ${fmt(area)}`;
     } else if (shape === 'rightTriangle') {
       area = (width * height) / 2;
-      formulaSym = 'P = (a·b)/2';
-      formulaSub = `(${width}·${height})/2 = ${fmt(area)} jedn²`;
+      formulaSym = 'P = \\frac{a \\cdot b}{2}';
+      formulaSub = `\\frac{${width} \\cdot ${height}}{2} = ${fmt(area)}`;
     } else if (shape === 'equilateral') {
       area = (Math.sqrt(3) / 4) * width * width;
-      formulaSym = 'P = (√3/4)·a²';
-      formulaSub = `(√3/4)·${width}² = ${fmt(area)} jedn²`;
+      formulaSym = 'P = \\frac{\\sqrt{3}}{4} a^2';
+      formulaSub = `\\frac{\\sqrt{3}}{4} \\cdot ${width}^2 = ${fmt(area)}`;
     } else { // isosceles triangle
       area = (width * height) / 2;
-      formulaSym = 'P = (a·h)/2';
-      formulaSub = `(${width}·${height})/2 = ${fmt(area)} jedn²`;
+      formulaSym = 'P = \\frac{a \\cdot h}{2}';
+      formulaSub = `\\frac{${width} \\cdot ${height}}{2} = ${fmt(area)}`;
     }
 
+    latexString = `${formulaSym} = ${formulaSub}\\ \\text{jedn}^2`;
+
     areaVal.textContent = fmt(area);
-    areaFormula.textContent = `${formulaSym} = ${formulaSub}`;
+    // Render LaTeX
+    katex.render(latexString, areaFormula, { throwOnError: false });
 
     const cols=Math.max(1, Math.ceil(width));
     const rows=Math.max(1, Math.ceil(height));
