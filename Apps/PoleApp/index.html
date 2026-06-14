@@ -69,6 +69,13 @@
       <input id="hs" type="range" min="0" max="20" step="1" value="3">
     </div>
     <div class="bar-divider"></div>
+    <!-- nowy input dla trapezu (druga podstawa) -->
+    <div class="control-group" id="base2Group" style="display: none;">
+      <span class="ctrl-label">Podstawa 2</span>
+      <input id="b2" type="text" inputmode="decimal" value="4">
+      <input id="b2s" type="range" min="0" max="20" step="1" value="4">
+    </div>
+    <div class="bar-divider"></div>
     <div class="control-group">
       <span class="ctrl-label">Kształt</span>
       <select id="shapeSelect">
@@ -76,6 +83,9 @@
         <option value="rightTriangle">Trójkąt prostokątny</option>
         <option value="equilateral">Trójkąt równoboczny</option>
         <option value="triangle">Trójkąt równoramienny</option>
+        <option value="parallelogram">Równoległobok</option>
+        <option value="rhombus">Romb</option>
+        <option value="trapezoid">Trapez</option>
       </select>
     </div>
     <div class="control-group">
@@ -90,18 +100,20 @@
   </div>
   <script src="../../shared/theme.js"></script>
   <script>
-  const UNIT=40,PADDING=2*UNIT;
-  const w=document.getElementById('w'),h=document.getElementById('h');
-  const ws=document.getElementById('ws'),hs=document.getElementById('hs');
-  const shapeSelect=document.getElementById('shapeSelect'),colorPicker=document.getElementById('colorPicker');
-  const areaVal=document.getElementById('areaVal'),svg=document.getElementById('svg'),svgContainer=document.getElementById('svgContainer');
+  const UNIT=40, PADDING=2*UNIT;
+  const w=document.getElementById('w'), h=document.getElementById('h'), b2=document.getElementById('b2');
+  const ws=document.getElementById('ws'), hs=document.getElementById('hs'), b2s=document.getElementById('b2s');
+  const shapeSelect=document.getElementById('shapeSelect'), colorPicker=document.getElementById('colorPicker');
+  const areaVal=document.getElementById('areaVal'), svg=document.getElementById('svg'), svgContainer=document.getElementById('svgContainer');
   const gridCheckbox = document.getElementById('gridCheckbox');
   const widthLabel = document.getElementById('widthLabel');
   const heightGroup = document.getElementById('heightGroup');
+  const heightLabel = document.getElementById('heightLabel');
+  const base2Group = document.getElementById('base2Group');
   const areaFormula = document.getElementById('areaFormula');
   let zoom=1.0;
 
-  function num(v){return Math.max(0,Math.min(20,parseFloat(v)||0));}
+  function num(v){return Math.max(0, Math.min(20, parseFloat(v)||0));}
   function fmt(n){return parseFloat(n.toFixed(4)).toString();}
   function hexToRgba(hex,alpha){hex=hex.replace('#','');const r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);return `rgba(${r},${g},${b},${alpha})`;}
   function isDark(){return document.documentElement.getAttribute('data-theme')==='dark';}
@@ -110,13 +122,14 @@
     const shape = shapeSelect.value;
     let width = num(w.value);
     let height = num(h.value);
+    let base2Val = num(b2.value);
 
     if (shape === 'equilateral') {
       height = width * Math.sqrt(3) / 2;
     }
 
     const fill=hexToRgba(colorPicker.value,0.35);
-    const dark=isDark(),gs=dark?'#555':'#666',ss=dark?'#ccc':'black';
+    const dark=isDark(), gs=dark?'#555':'#666', ss=dark?'#ccc':'black';
 
     let area;
     let formulaSym, formulaSub, latexString;
@@ -133,18 +146,32 @@
       area = (Math.sqrt(3) / 4) * width * width;
       formulaSym = 'P = \\frac{\\sqrt{3}}{4} a^2';
       formulaSub = `\\frac{\\sqrt{3}}{4} \\cdot ${width}^2 = ${fmt(area)}`;
-    } else { // isosceles triangle
+    } else if (shape === 'triangle') {
       area = (width * height) / 2;
       formulaSym = 'P = \\frac{a \\cdot h}{2}';
       formulaSub = `\\frac{${width} \\cdot ${height}}{2} = ${fmt(area)}`;
+    } else if (shape === 'parallelogram') {
+      area = width * height;
+      formulaSym = 'P = a \\cdot h';
+      formulaSub = `${width} \\cdot ${height} = ${fmt(area)}`;
+    } else if (shape === 'rhombus') {
+      area = width * height;  // a*h, same as parallelogram
+      formulaSym = 'P = a \\cdot h';
+      formulaSub = `${width} \\cdot ${height} = ${fmt(area)}`;
+    } else if (shape === 'trapezoid') {
+      area = ((width + base2Val) * height) / 2;
+      formulaSym = 'P = \\frac{(a + b) \\cdot h}{2}';
+      formulaSub = `\\frac{(${width} + ${base2Val}) \\cdot ${height}}{2} = ${fmt(area)}`;
     }
 
     latexString = `${formulaSym} = ${formulaSub}\\ \\text{jedn}^2`;
-
     areaVal.textContent = fmt(area);
     katex.render(latexString, areaFormula, { throwOnError: false });
 
-    const cols=Math.max(1, Math.ceil(width));
+    // dla rysowania potrzebujemy cols/rows na podstawie maksymalnych rozmiarów
+    let maxW = width;
+    if (shape === 'trapezoid') maxW = Math.max(width, base2Val);
+    const cols=Math.max(1, Math.ceil(maxW));
     const rows=Math.max(1, Math.ceil(height));
     const bW=cols*UNIT+2*PADDING, bH=rows*UNIT+2*PADDING;
     svg.setAttribute('viewBox',`0 0 ${bW} ${bH}`);
@@ -160,20 +187,45 @@
     if (shape === 'rectangle') {
       s+=`<rect x="${ox}" y="${oy}" width="${width*UNIT}" height="${height*UNIT}" fill="none" stroke="${ss}" stroke-width="2"/>`;
       for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
-        const vw=Math.max(0,Math.min(1,width-x)), vh=Math.max(0,Math.min(1,height-y));
+        const vw=Math.max(0, Math.min(1, width-x)), vh=Math.max(0, Math.min(1, height-y));
         if(vw>0 && vh>0) s+=`<rect x="${ox+x*UNIT}" y="${oy+y*UNIT}" width="${vw*UNIT}" height="${vh*UNIT}" fill="${fill}"/>`;
       }
-    } else {
+    } else if (shape === 'rightTriangle' || shape === 'equilateral' || shape === 'triangle') {
       let pts;
       if (shape === 'rightTriangle') {
         pts = `${ox},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
-      } else if (shape === 'equilateral') {
-        const apexX = ox + width*UNIT/2;
-        pts = `${apexX},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
-      } else {
+      } else { // równoboczny i równoramienny mają wierzchołek na górze na środku
         const apexX = ox + width*UNIT/2;
         pts = `${apexX},${oy} ${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT}`;
       }
+      s+=`<polygon points="${pts}" fill="${fill}" stroke="${ss}" stroke-width="2"/>`;
+    } else if (shape === 'parallelogram' || shape === 'rhombus') {
+      // Równoległobok i romb: podstawa width, wysokość height; górna krawędź przesunięta o offset
+      let offset;
+      if (shape === 'rhombus') {
+        // bok = width, wysokość = height, aby zachować równość boków: offset = sqrt(width^2 - height^2) (o ile height <= width)
+        const sideLen = width;
+        if (height >= sideLen) {
+          // gdy wysokość >= bok, romb jest niemożliwy, więc rysujemy jako pionową kreskę? lepiej narysujmy coś bezpiecznego
+          offset = 0;
+        } else {
+          offset = Math.sqrt(sideLen*sideLen - height*height);
+        }
+      } else {
+        // dla równoległoboku stałe przesunięcie, np. 0.3 * width
+        offset = width * 0.3;
+      }
+      const pts = `${ox},${oy+height*UNIT} ${ox+width*UNIT},${oy+height*UNIT} ${ox+width*UNIT+offset*UNIT},${oy} ${ox+offset*UNIT},${oy}`;
+      s+=`<polygon points="${pts}" fill="${fill}" stroke="${ss}" stroke-width="2"/>`;
+    } else if (shape === 'trapezoid') {
+      // Podstawy: width (dolna), base2Val (górna). Obie wyśrodkowane.
+      const bottomBase = width;
+      const topBase = base2Val;
+      const bottomLeftX = ox;
+      const bottomRightX = ox + bottomBase*UNIT;
+      const topLeftX = ox + (bottomBase - topBase)/2 * UNIT;
+      const topRightX = topLeftX + topBase*UNIT;
+      const pts = `${bottomLeftX},${oy+height*UNIT} ${bottomRightX},${oy+height*UNIT} ${topRightX},${oy} ${topLeftX},${oy}`;
       s+=`<polygon points="${pts}" fill="${fill}" stroke="${ss}" stroke-width="2"/>`;
     }
 
@@ -182,14 +234,41 @@
 
   function updateUIForShape() {
     const shape = shapeSelect.value;
+    // Default visibility
+    heightGroup.style.display = '';
+    base2Group.style.display = 'none';
+    widthLabel.textContent = 'Długość';
+    heightLabel.textContent = 'Wysokość';
+
     if (shape === 'equilateral') {
       heightGroup.style.display = 'none';
       widthLabel.textContent = 'Bok';
-    } else {
-      heightGroup.style.display = '';
+    } else if (shape === 'rectangle') {
       widthLabel.textContent = 'Długość';
+      heightLabel.textContent = 'Szerokość';  // opcjonalnie: dla prostokąta "Szerokość"
+    } else if (shape === 'rightTriangle' || shape === 'triangle') {
+      widthLabel.textContent = 'Podstawa';
+      heightLabel.textContent = 'Wysokość';
+    } else if (shape === 'parallelogram' || shape === 'rhombus') {
+      if (shape === 'rhombus') widthLabel.textContent = 'Bok';
+      else widthLabel.textContent = 'Podstawa';
+      heightLabel.textContent = 'Wysokość';
+    } else if (shape === 'trapezoid') {
+      widthLabel.textContent = 'Podstawa 1';
+      heightLabel.textContent = 'Wysokość';
+      base2Group.style.display = '';
     }
   }
+
+  // Synchronizacja suwaków i pól tekstowych dla nowego inputa b2
+  b2.oninput = draw;
+  b2s.oninput = () => { b2.value = b2s.value; draw(); };
+  b2.addEventListener('change', () => {
+    const v = num(b2.value);
+    b2.value = v;
+    b2s.value = v;
+    draw();
+  });
 
   shapeSelect.addEventListener('change', () => {
     updateUIForShape();
@@ -209,6 +288,11 @@
   colorPicker.oninput = draw;
   gridCheckbox.addEventListener('change', draw);
   window.addEventListener('themechange', draw);
+
+  // Dodatkowe listenery na zmianę ręczną pól (enter lub utrata focus)
+  w.addEventListener('change', () => { const v=num(w.value); w.value=v; ws.value=v; draw(); });
+  h.addEventListener('change', () => { const v=num(h.value); h.value=v; hs.value=v; draw(); });
+  b2.addEventListener('change', () => { const v=num(b2.value); b2.value=v; b2s.value=v; draw(); });
 
   updateUIForShape();
   draw();
